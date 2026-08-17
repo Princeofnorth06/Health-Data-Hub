@@ -11,12 +11,13 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
+      fontFamily: AppTextStyles.bodyFamily,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         headlineMedium: AppTextStyles.heading,
         titleMedium: AppTextStyles.subtitle,
         bodyMedium: AppTextStyles.body,

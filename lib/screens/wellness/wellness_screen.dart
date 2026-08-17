@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:health_data_hub/app/routes/app_routes.dart';
 import 'package:health_data_hub/app/theme/app_colors.dart';
 import 'package:health_data_hub/app/theme/app_text_styles.dart';
 import 'package:health_data_hub/controllers/wellness_controller.dart';
@@ -83,7 +84,7 @@ class _WellnessHeader extends StatelessWidget {
     return Row(
       children: [
         const AppBackButton(),
-        const Expanded(
+        Expanded(
           child: Text(
             'Genotype',
             textAlign: TextAlign.center,
@@ -100,7 +101,13 @@ class _WellnessHeader extends StatelessWidget {
             ),
           ),
           padding: const EdgeInsets.all(6),
-          child: Image.asset(AppAssets.dnaHelix, fit: BoxFit.contain),
+          child: Transform.rotate(
+            angle: 0.7, // radians
+            child: Image.asset(
+              AppAssets.dnaHelix,
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
       ],
     );
@@ -112,21 +119,26 @@ class _ScoreSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Flexible(
-          child: Text(
-            'Overall Wellness Score',
-            style: AppTextStyles.subtitle,
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.genotype),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              'Overall Wellness Score',
+              style: AppTextStyles.displayMedium,
+            ),
           ),
-        ),
-        SizedBox(width: 6),
-        Icon(
-          Icons.keyboard_arrow_down,
-          color: AppColors.textPrimary,
-          size: 20,
-        ),
-      ],
+          const SizedBox(width: 6),
+          Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
+        ],
+      ),
     );
   }
 }

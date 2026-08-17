@@ -75,5 +75,54 @@ class HealthData {
     ),
   ];
 
+  static const List<HormoneData> hormoneRegulation = [
+    HormoneData(
+      name: 'Dopamine',
+      level: 76,
+      subtitle: 'Motivation & Focus Hormone',
+      interpretation:
+          'Your dopamine genotype score of 76% indicates a '
+          'moderately strong ability to produce and regulate '
+          'dopamine, the neurotransmitter responsible for '
+          'motivation, focus, and feelings of reward.\n\n'
+          'A score in this range suggests that while your '
+          'dopamine system generally supports good drive and '
+          'mental clarity, you may occasionally experience dips '
+          'in motivation or focus during prolonged stress or '
+          'mental fatigue.\n\n'
+          'Supporting your dopamine levels through balanced '
+          'nutrition, regular physical activity, good sleep, and '
+          'engaging in rewarding activities can help you maintain '
+          'consistent energy and focus throughout the day.',
+      about:
+          'Dopamine influences motivation, focus, pleasure, learning, '
+          'and mood regulation.',
+      aboutVariations: [
+        HormoneToneVariation(
+          label: 'Casual',
+          text:
+              'Helps you stay motivated, focused, and feel good after '
+              'achieving goals.',
+        ),
+        HormoneToneVariation(
+          label: 'Scientific',
+          text:
+              'A neurotransmitter essential for motivation, attention, reward '
+              'processing, and emotional balance.',
+        ),
+        HormoneToneVariation(
+          label: 'Wellness-focused',
+          text:
+              'Drives motivation, focus, positivity, and the satisfaction of '
+              'achieving goals.',
+        ),
+      ],
+    ),
+    HormoneData(name: 'Serotonin', level: 0),
+    HormoneData(name: 'Cortisol', level: 0),
+    HormoneData(name: 'Melatonin', level: 0),
+    HormoneData(name: 'OXTR', level: 0),
+  ];
+
   static const List<GeneticTrait> geneticTraits = [];
 }

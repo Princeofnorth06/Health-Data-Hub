@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:health_data_hub/app/bindings/initial_binding.dart';
 import 'package:health_data_hub/app/routes/app_routes.dart';
+import 'package:health_data_hub/app/theme/app_text_styles.dart';
 import 'package:health_data_hub/app/theme/app_theme.dart';
 import 'package:health_data_hub/core/constants/app_constants.dart';
 import 'package:health_data_hub/screens/dopamine/dopamine_screen.dart';
 import 'package:health_data_hub/screens/genotype/genotype_screen.dart';
 import 'package:health_data_hub/screens/wellness/wellness_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppTextStyles.ensureLoaded();
   runApp(const HealthDataHubApp());
 }
 

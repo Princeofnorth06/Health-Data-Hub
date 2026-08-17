@@ -23,7 +23,7 @@ class GeneticStrengthCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text('Genetic Strengths', style: AppTextStyles.heading),
               ),
               Icon(
@@ -34,12 +34,12 @@ class GeneticStrengthCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Highlighted areas where your genotype shows optimal performance',
             style: AppTextStyles.caption,
           ),
           const SizedBox(height: 16),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: Text('Trait/Hormone', style: AppTextStyles.caption),

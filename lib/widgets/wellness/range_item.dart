@@ -46,7 +46,7 @@ class RangeItem extends StatelessWidget {
             children: [
               Text(
                 '${range.name} (${range.label})',
-                style: AppTextStyles.subtitle.copyWith(fontSize: 13),
+                style: AppTextStyles.rangeLabel,
               ),
               const SizedBox(height: 4),
               Text(range.description, style: AppTextStyles.caption),

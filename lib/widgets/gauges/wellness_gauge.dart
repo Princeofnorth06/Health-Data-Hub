@@ -7,7 +7,6 @@ import 'package:health_data_hub/app/theme/app_text_styles.dart';
 class WellnessGauge extends StatefulWidget {
   const WellnessGauge({super.key, required this.score});
 
-  /// Score from 0 to 100.
   final double score;
 
   @override
@@ -24,11 +23,10 @@ class _WellnessGaugeState extends State<WellnessGauge>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1200),
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
+    _animation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _controller.forward();
   }
@@ -44,26 +42,15 @@ class _WellnessGaugeState extends State<WellnessGauge>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        final targetProgress = (widget.score / 100).clamp(0.0, 1.0);
-        final animatedProgress = targetProgress * _animation.value;
-        final displayedScore = widget.score * _animation.value;
-
         return SizedBox(
           width: double.infinity,
           child: AspectRatio(
             aspectRatio: 1,
             child: CustomPaint(
-              painter: WellnessGaugePainter(progress: animatedProgress),
-              child: Center(
-                child: FractionallySizedBox(
-                  widthFactor: 0.4,
-                  child: FittedBox(
-                    child: Text(
-                      '${displayedScore.round()}%',
-                      style: AppTextStyles.gaugeScore,
-                    ),
-                  ),
-                ),
+              size: Size.infinite,
+              painter: WellnessGaugePainter(
+                score: widget.score,
+                animationValue: _animation.value,
               ),
             ),
           ),
@@ -74,149 +61,133 @@ class _WellnessGaugeState extends State<WellnessGauge>
 }
 
 class WellnessGaugePainter extends CustomPainter {
-  WellnessGaugePainter({required this.progress});
+  WellnessGaugePainter({
+    required this.score,
+    required this.animationValue,
+  });
 
-  /// Filled portion of the gauge, from 0.0 to 1.0.
-  final double progress;
+  final double score;
+  final double animationValue;
 
-  // 135° (bottom-left) sweeping 270° clockwise to bottom-right.
-  static const double _startAngle = math.pi * 0.75;
-  static const double _sweepAngle = math.pi * 1.5;
+  // 7:30 → 12 o'clock → 4:30
+  static const double _startAngle = 3 * math.pi / 4;
+  static const double _sweepAngle = 3 * math.pi / 2;
+
+  static const Color _neonGreen = Color(0xFF9EFF6C);
+  static const Color _tickTeal = Color(0xFF5EE0E0);
+  static const Color _labelGray = Color(0xFFB8B8B8);
+
+  static const double _centerScoreFontScale = 0.20;
+  static const double _labelFontScale = 0.086;
+  static const double _labelOpacity = 0.58;
+  static const double _labelRadiusScale = 0.875;
+  static const double _tickOuterScale = 0.80;
+  static const double _majorTickInnerScale = 0.735;
+  static const double _minorTickInnerScale = 0.76;
+  static const double _cyanRingScale = 0.70;
+  static const double _arcRadiusScale = 0.64;
+  static const double _innerRingScale = 0.52;
+  static const double _innerTickScale = 0.455;
+
+  double get _progress {
+    return (score / 100).clamp(0.0, 1.0) * animationValue;
+  }
+
+  double get _progressAngle => _sweepAngle * _progress;
+
+  double get _displayedScore => score * animationValue;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.shortestSide / 2;
+    final radius = math.min(size.width, size.height) / 2;
 
-    final labelRadius = outerRadius * 0.91;
-    final tickOuterRadius = outerRadius * 0.80;
-    final majorTickInnerRadius = outerRadius * 0.73;
-    final minorTickInnerRadius = outerRadius * 0.765;
-    final progressRadius = outerRadius * 0.64;
-    final innerRingRadius = outerRadius * 0.54;
-    final progressStrokeWidth = outerRadius * 0.048;
-
-    _drawCenterGlow(canvas, center, outerRadius);
-    _drawInnerRings(canvas, center, outerRadius, innerRingRadius);
-    _drawTicks(
-      canvas,
-      center,
-      tickOuterRadius,
-      majorTickInnerRadius,
-      minorTickInnerRadius,
-    );
-    _drawLabels(canvas, center, labelRadius, outerRadius);
-    _drawTrack(canvas, center, progressRadius, progressStrokeWidth);
-    _drawProgressArc(canvas, center, progressRadius, progressStrokeWidth);
-    _drawHandle(canvas, center, progressRadius, progressStrokeWidth);
-    _drawBottomMarker(canvas, center, innerRingRadius, outerRadius);
+    _drawBackgroundGlow(canvas, center, radius);
+    _drawInnerRing(canvas, center, radius);
+    _drawOuterCyanRing(canvas, center, radius);
+    _drawOuterTicks(canvas, center, radius);
+    _drawScaleLabels(canvas, center, radius);
+    _drawMainArc(canvas, center, radius);
+    _drawInnerTicks(canvas, center, radius);
+    _drawScoreMarker(canvas, center, radius);
+    _drawBottomHighlight(canvas, center, radius);
+    _drawCenterScore(canvas, center, radius);
   }
 
-  void _drawCenterGlow(Canvas canvas, Offset center, double outerRadius) {
-    final rect = Rect.fromCircle(center: center, radius: outerRadius * 0.72);
+  Offset _point(Offset center, double radius, double angle) {
+    return Offset(
+      center.dx + radius * math.cos(angle),
+      center.dy + radius * math.sin(angle),
+    );
+  }
+
+  void _drawBackgroundGlow(Canvas canvas, Offset center, double radius) {
+    final rect = Rect.fromCircle(center: center, radius: radius);
     final paint = Paint()
       ..shader = RadialGradient(
         colors: [
-          AppColors.primary.withValues(alpha: 0.20),
-          AppColors.primary.withValues(alpha: 0.04),
+          _neonGreen.withValues(alpha: 0.12),
+          _neonGreen.withValues(alpha: 0.04),
           Colors.transparent,
         ],
         stops: const [0.0, 0.45, 1.0],
       ).createShader(rect);
-    canvas.drawCircle(center, outerRadius * 0.72, paint);
+
+    canvas.drawCircle(center, radius, paint);
   }
 
-  void _drawInnerRings(
-    Canvas canvas,
-    Offset center,
-    double outerRadius,
-    double innerRingRadius,
-  ) {
-    final mutedRingPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = outerRadius * 0.01
-      ..color = AppColors.primary.withValues(alpha: 0.28);
-
-    canvas.drawCircle(center, innerRingRadius, mutedRingPaint);
-
-    final faintPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..color = AppColors.textPrimary.withValues(alpha: 0.08);
-
-    canvas.drawCircle(center, outerRadius * 0.46, faintPaint);
-    canvas.drawCircle(center, outerRadius * 0.40, faintPaint);
-  }
-
-  void _drawTicks(
-    Canvas canvas,
-    Offset center,
-    double tickOuterRadius,
-    double majorTickInnerRadius,
-    double minorTickInnerRadius,
-  ) {
+  void _drawOuterTicks(Canvas canvas, Offset center, double radius) {
     const tickCount = 50;
+    final tickOuterRadius = radius * _tickOuterScale;
+    final majorInnerRadius = radius * _majorTickInnerScale;
+    final minorInnerRadius = radius * _minorTickInnerScale;
 
     final majorPaint = Paint()
-      ..color = AppColors.textPrimary.withValues(alpha: 0.72)
-      ..strokeWidth = 1.6
+      ..color = _tickTeal.withValues(alpha: 0.78)
+      ..strokeWidth = radius * 0.008
       ..strokeCap = StrokeCap.round;
 
     final minorPaint = Paint()
-      ..color = AppColors.textPrimary.withValues(alpha: 0.28)
-      ..strokeWidth = 1
+      ..color = _tickTeal.withValues(alpha: 0.22)
+      ..strokeWidth = radius * 0.004
       ..strokeCap = StrokeCap.round;
 
     for (var i = 0; i <= tickCount; i++) {
       final tickProgress = i / tickCount;
       final angle = _startAngle + _sweepAngle * tickProgress;
       final isMajor = i % 5 == 0;
-      final innerRadius = isMajor ? majorTickInnerRadius : minorTickInnerRadius;
+      final innerRadius = isMajor ? majorInnerRadius : minorInnerRadius;
 
-      final start = Offset(
-        center.dx + innerRadius * math.cos(angle),
-        center.dy + innerRadius * math.sin(angle),
+      canvas.drawLine(
+        _point(center, innerRadius, angle),
+        _point(center, tickOuterRadius, angle),
+        isMajor ? majorPaint : minorPaint,
       );
-      final end = Offset(
-        center.dx + tickOuterRadius * math.cos(angle),
-        center.dy + tickOuterRadius * math.sin(angle),
-      );
-
-      canvas.drawLine(start, end, isMajor ? majorPaint : minorPaint);
     }
   }
 
-  void _drawLabels(
-    Canvas canvas,
-    Offset center,
-    double labelRadius,
-    double outerRadius,
-  ) {
+  void _drawScaleLabels(Canvas canvas, Offset center, double radius) {
     const labelCount = 10;
-    final fontSize = outerRadius * 0.055;
+    final labelRadius = radius * _labelRadiusScale;
+    final fontSize = radius * _labelFontScale;
 
     for (var i = 0; i <= labelCount; i++) {
-      final labelProgress = i / labelCount;
-      final angle = _startAngle + _sweepAngle * labelProgress;
+      final t = i / labelCount;
+      final angle = _startAngle + _sweepAngle * t;
       final percent = i * 10;
 
       final textPainter = TextPainter(
         text: TextSpan(
           text: '$percent%',
-          style: TextStyle(
-            color: AppColors.textSecondary,
+          style: AppTextStyles.gaugeLabel.copyWith(
+            color: _labelGray.withValues(alpha: _labelOpacity),
             fontSize: fontSize,
-            fontWeight: FontWeight.w400,
           ),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
 
-      final labelCenter = Offset(
-        center.dx + labelRadius * math.cos(angle),
-        center.dy + labelRadius * math.sin(angle),
-      );
-
+      final labelCenter = _point(center, labelRadius, angle);
       textPainter.paint(
         canvas,
         labelCenter - Offset(textPainter.width / 2, textPainter.height / 2),
@@ -224,97 +195,180 @@ class WellnessGaugePainter extends CustomPainter {
     }
   }
 
-  void _drawTrack(
-    Canvas canvas,
-    Offset center,
-    double progressRadius,
-    double strokeWidth,
-  ) {
-    final rect = Rect.fromCircle(center: center, radius: progressRadius);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0xFF2A2A2A);
-    canvas.drawArc(rect, _startAngle, _sweepAngle, false, paint);
-  }
-
-  void _drawProgressArc(
-    Canvas canvas,
-    Offset center,
-    double progressRadius,
-    double strokeWidth,
-  ) {
-    if (progress <= 0) {
-      return;
-    }
-
-    final rect = Rect.fromCircle(center: center, radius: progressRadius);
-    final sweep = _sweepAngle * progress;
+  void _drawOuterCyanRing(Canvas canvas, Offset center, double radius) {
+    final ringRadius = radius * _cyanRingScale;
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * 1.8
+      ..strokeWidth = radius * 0.03
+      ..color = AppColors.accentCyan.withValues(alpha: 0.12)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.012
+      ..color = AppColors.accentCyan.withValues(alpha: 0.32);
+
+    canvas.drawCircle(center, ringRadius, glowPaint);
+    canvas.drawCircle(center, ringRadius, ringPaint);
+  }
+
+  void _drawMainArc(Canvas canvas, Offset center, double radius) {
+    final arcRadius = radius * _arcRadiusScale;
+    final strokeWidth = radius * 0.048;
+    final rect = Rect.fromCircle(center: center, radius: arcRadius);
+
+    final trackPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = AppColors.primary.withValues(alpha: 0.28)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      ..color = const Color(0xFF1A1A1A);
+
+    canvas.drawArc(rect, _startAngle, _sweepAngle, false, trackPaint);
+
+    if (_progress <= 0) {
+      return;
+    }
+
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 1.45
+      ..strokeCap = StrokeCap.round
+      ..color = _neonGreen.withValues(alpha: 0.20)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
     final arcPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = AppColors.primary;
+      ..color = _neonGreen;
 
-    canvas.drawArc(rect, _startAngle, sweep, false, glowPaint);
-    canvas.drawArc(rect, _startAngle, sweep, false, arcPaint);
+    canvas.drawArc(rect, _startAngle, _progressAngle, false, glowPaint);
+    canvas.drawArc(rect, _startAngle, _progressAngle, false, arcPaint);
   }
 
-  void _drawHandle(
-    Canvas canvas,
-    Offset center,
-    double progressRadius,
-    double strokeWidth,
-  ) {
-    final angle = _startAngle + _sweepAngle * progress;
-    final handleCenter = Offset(
-      center.dx + progressRadius * math.cos(angle),
-      center.dy + progressRadius * math.sin(angle),
-    );
-    final handleRadius = strokeWidth * 0.72;
+  void _drawScoreMarker(Canvas canvas, Offset center, double radius) {
+    final arcRadius = radius * _arcRadiusScale;
+    final angle = _startAngle + _progressAngle;
+    final markerCenter = _point(center, arcRadius, angle);
+    final markerRadius = radius * 0.030;
 
     final glowPaint = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    canvas.drawCircle(handleCenter, handleRadius * 1.8, glowPaint);
+      ..color = _neonGreen.withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(markerCenter, markerRadius * 1.8, glowPaint);
 
-    final fillPaint = Paint()..color = AppColors.primary;
-    canvas.drawCircle(handleCenter, handleRadius, fillPaint);
+    final fillPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.3, -0.3),
+        colors: [
+          Colors.white.withValues(alpha: 0.85),
+          _neonGreen,
+          const Color(0xFF1B5E20),
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(Rect.fromCircle(center: markerCenter, radius: markerRadius));
+
+    canvas.drawCircle(markerCenter, markerRadius, fillPaint);
   }
 
-  void _drawBottomMarker(
-    Canvas canvas,
-    Offset center,
-    double innerRingRadius,
-    double outerRadius,
-  ) {
-    final markerY = center.dy + innerRingRadius;
-    final markerWidth = outerRadius * 0.07;
+  void _drawInnerRing(Canvas canvas, Offset center, double radius) {
+    final innerRadius = radius * _innerRingScale;
+
+    final fillPaint = Paint()
+      ..shader = RadialGradient(
+        colors: const [
+          Color(0xFF050805),
+          Color(0xFF0C1F0C),
+          Color(0xFF1B4D1B),
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: innerRadius));
+    canvas.drawCircle(center, innerRadius, fillPaint);
+
+    final edgeGlow = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.016
+      ..color = _neonGreen.withValues(alpha: 0.26)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(center, innerRadius, edgeGlow);
+
+    final edgePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.007
+      ..color = _neonGreen.withValues(alpha: 0.48);
+    canvas.drawCircle(center, innerRadius, edgePaint);
+  }
+
+  void _drawInnerTicks(Canvas canvas, Offset center, double radius) {
+    const totalDashes = 22;
+    final tickRadius = radius * _innerTickScale;
+    final tickLength = radius * 0.032;
+
+    final dimPaint = Paint()
+      ..color = _neonGreen.withValues(alpha: 0.16)
+      ..strokeWidth = radius * 0.008
+      ..strokeCap = StrokeCap.round;
+
+    final litPaint = Paint()
+      ..color = _neonGreen
+      ..strokeWidth = radius * 0.01
+      ..strokeCap = StrokeCap.round;
+
+    for (var i = 0; i <= totalDashes; i++) {
+      final dashProgress = i / totalDashes;
+      final angle = _startAngle + _sweepAngle * dashProgress;
+      final isLit = _progress >= dashProgress;
+
+      canvas.drawLine(
+        _point(center, tickRadius - tickLength / 2, angle),
+        _point(center, tickRadius + tickLength / 2, angle),
+        isLit ? litPaint : dimPaint,
+      );
+    }
+  }
+
+  void _drawBottomHighlight(Canvas canvas, Offset center, double radius) {
+    final markerY = center.dy + radius * _innerRingScale;
+    final markerWidth = radius * 0.07;
+
+    final glowPaint = Paint()
+      ..color = AppColors.accentCyan.withValues(alpha: 0.28)
+      ..strokeWidth = radius * 0.016
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
     final paint = Paint()
-      ..color = AppColors.accentCyan
-      ..strokeWidth = outerRadius * 0.014
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+      ..color = AppColors.accentCyan.withValues(alpha: 0.75)
+      ..strokeWidth = radius * 0.009
+      ..strokeCap = StrokeCap.round;
 
-    canvas.drawLine(
-      Offset(center.dx - markerWidth / 2, markerY),
-      Offset(center.dx + markerWidth / 2, markerY),
-      paint,
+    final start = Offset(center.dx - markerWidth / 2, markerY);
+    final end = Offset(center.dx + markerWidth / 2, markerY);
+    canvas.drawLine(start, end, glowPaint);
+    canvas.drawLine(start, end, paint);
+  }
+
+  void _drawCenterScore(Canvas canvas, Offset center, double radius) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '${_displayedScore.round()}%',
+        style: AppTextStyles.gaugeScore.copyWith(
+          fontSize: radius * _centerScoreFontScale,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    textPainter.paint(
+      canvas,
+      center - Offset(textPainter.width / 2, textPainter.height / 2),
     );
   }
 
   @override
   bool shouldRepaint(WellnessGaugePainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.score != score ||
+        oldDelegate.animationValue != animationValue;
   }
 }
