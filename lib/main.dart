@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:health_data_hub/app/bindings/initial_binding.dart';
 import 'package:health_data_hub/app/routes/app_routes.dart';
 import 'package:health_data_hub/app/theme/app_theme.dart';
 import 'package:health_data_hub/core/constants/app_constants.dart';
@@ -15,9 +17,10 @@ class HealthDataHubApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: AppConstants.appName,
       theme: AppTheme.light(),
+      initialBinding: InitialBinding(),
       initialRoute: AppRoutes.wellness,
       routes: {
         AppRoutes.wellness: (_) => const WellnessScreen(),
