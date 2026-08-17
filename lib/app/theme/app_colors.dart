@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color primary = Color(0xFF2E7D6F);
-  static const Color secondary = Color(0xFF5B8DEF);
-  static const Color accent = Color(0xFFE8A87C);
-  static const Color background = Color(0xFFF6F8F7);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF1C2B29);
-  static const Color textSecondary = Color(0xFF6B7C78);
-  static const Color success = Color(0xFF3D9A6A);
-  static const Color warning = Color(0xFFE0A106);
-  static const Color error = Color(0xFFD64545);
+  static const Color primary = Color(0xFF7CFF6B);
+  static const Color secondary = Color(0xFF4DA6FF);
+  static const Color background = Color(0xFF000000);
+  static const Color surface = Color(0xFF121212);
+  static const Color card = Color(0xFF141414);
+  static const Color cardBorder = Color(0xFF2A2A2A);
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFF9A9A9A);
+  static const Color accentBlue = Color(0xFF7EC8FF);
+  static const Color accentCyan = Color(0xFF00C8FF);
+  static const Color scoreHighlight = Color(0xFFFFD54F);
+  static const Color rangeHigh = Color(0xFF7CFF6B);
+  static const Color rangeModerate = Color(0xFFFFE14D);
+  static const Color rangeLow = Color(0xFFFF6B3D);
+  static const Color progress = Color(0xFF5B9BFF);
 }

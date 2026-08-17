@@ -8,6 +8,6 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: AppTextStyles.heading);
+    return Text(title, style: AppTextStyles.sectionTitle);
   }
 }

@@ -19,7 +19,8 @@ class HealthDataHubApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: AppConstants.appName,
-      theme: AppTheme.light(),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.dark(),
       initialBinding: InitialBinding(),
       initialRoute: AppRoutes.wellness,
       routes: {

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:health_data_hub/app/theme/app_colors.dart';
 import 'package:health_data_hub/app/theme/app_text_styles.dart';
 
 class AppTheme {
   AppTheme._();
 
-  static ThemeData light() {
+  static ThemeData dark() {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.background,
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        error: AppColors.error,
       ),
-      scaffoldBackgroundColor: AppColors.background,
       textTheme: const TextTheme(
         headlineMedium: AppTextStyles.heading,
         titleMedium: AppTextStyles.subtitle,
@@ -23,10 +23,11 @@ class AppTheme {
         bodySmall: AppTextStyles.caption,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
     );
   }
