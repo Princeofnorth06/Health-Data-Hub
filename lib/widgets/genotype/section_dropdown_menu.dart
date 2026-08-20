@@ -3,99 +3,41 @@ import 'package:get/get.dart';
 import 'package:health_data_hub/app/theme/app_colors.dart';
 import 'package:health_data_hub/app/theme/app_text_styles.dart';
 import 'package:health_data_hub/controllers/genotype_controller.dart';
-import 'package:health_data_hub/core/constants/app_constants.dart';
 import 'package:health_data_hub/data/models/genotype_section.dart';
 import 'package:health_data_hub/widgets/genotype/section_selector.dart';
 
-/// Anchors [SectionDropdownMenu] to the section title via the root overlay
-/// so the menu is not clipped by the page [Stack] / [ScrollView].
-class SectionSelectorAnchor extends StatefulWidget {
+/// Section title plus Hormone / Wellness menu, inline so the page can scroll.
+class SectionSelectorAnchor extends StatelessWidget {
   const SectionSelectorAnchor({super.key, required this.controller});
 
   final GenotypeController controller;
 
   @override
-  State<SectionSelectorAnchor> createState() => _SectionSelectorAnchorState();
-}
-
-class _SectionSelectorAnchorState extends State<SectionSelectorAnchor> {
-  final OverlayPortalController _portal = OverlayPortalController();
-  final LayerLink _link = LayerLink();
-
-  GenotypeController get _controller => widget.controller;
-
-  void _toggle() {
-    if (_portal.isShowing) {
-      _portal.hide();
-      _controller.closeSectionMenu();
-    } else {
-      _portal.show();
-      _controller.openSectionMenu();
-    }
-    setState(() {});
-  }
-
-  void _hide() {
-    if (_portal.isShowing) {
-      _portal.hide();
-    }
-    _controller.closeSectionMenu();
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final menuWidth =
-        MediaQuery.sizeOf(context).width - (AppConstants.pagePadding * 2);
-
-    return OverlayPortal(
-      controller: _portal,
-      overlayChildBuilder: (context) {
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _hide,
-                child: const ColoredBox(color: Color(0x33000000)),
-              ),
-            ),
-            CompositedTransformFollower(
-              link: _link,
-              showWhenUnlinked: false,
-              targetAnchor: Alignment.bottomCenter,
-              followerAnchor: Alignment.topCenter,
-              offset: const Offset(0, 12),
-              child: SizedBox(
-                width: menuWidth,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Obx(
-                    () => SectionDropdownMenu(
-                      sections: _controller.sections,
-                      selectedId: _controller.selectedSectionId.value,
-                      onSelect: (id) {
-                        _controller.selectSection(id);
-                        _hide();
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-      child: CompositedTransformTarget(
-        link: _link,
-        child: Obx(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Obx(
           () => SectionSelector(
-            title: _controller.sectionTitle,
-            expanded: _portal.isShowing,
-            onTap: _toggle,
+            title: controller.sectionTitle,
+            expanded: controller.isSectionMenuOpen.value,
+            onTap: controller.toggleSectionMenu,
           ),
         ),
-      ),
+        Obx(() {
+          if (!controller.isSectionMenuOpen.value) {
+            return const SizedBox.shrink();
+          }
+          return Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SectionDropdownMenu(
+              sections: controller.sections,
+              selectedId: controller.selectedSectionId.value,
+              onSelect: controller.selectSection,
+            ),
+          );
+        }),
+      ],
     );
   }
 }

@@ -10,6 +10,7 @@ class GeneticTrait {
     this.menuSubtitle,
     this.strengths = const [],
     this.weaknesses = const [],
+    this.accent = 0xFFFF9A2E,
   });
 
   final String id;
@@ -22,6 +23,9 @@ class GeneticTrait {
   final String? menuSubtitle;
   final List<OrganScore> strengths;
   final List<OrganScore> weaknesses;
+  final int accent;
+
+  bool get inPicker => menuSubtitle != null;
 
   bool get hasScore => score > 0;
 
@@ -46,6 +50,7 @@ class GeneticTrait {
       genotype: 'Serotonin Transporter Gene',
       score: 66,
       menuSubtitle: 'anxiety and emotional regulation.',
+      accent: 0xFFFF9A2E,
       interpretation:
           'Your SLC6A4 genotype score of 66% indicates a moderate '
           'efficiency in serotonin transport. This gene plays a vital '
@@ -84,18 +89,21 @@ class GeneticTrait {
       genotype: 'Catechol-O-Methyltransferase',
       menuSubtitle:
           'cognitive functions like memory and decision-making, linked to executive.',
+      accent: 0xFF2EE6D6,
     ),
     GeneticTrait(
       id: 'OXTR',
       name: 'OXTR',
       genotype: 'Oxytocin Receptor Gene',
       menuSubtitle: 'social behavior, empathy, and stress response.',
+      accent: 0xFFB6FF3C,
     ),
     GeneticTrait(
       id: 'MAOA',
       name: 'MAOA',
       genotype: 'Monoamine Oxidase A',
       menuSubtitle: 'aggression, impulse control, and emotional regulation.',
+      accent: 0xFFE07A3A,
     ),
   ];
 }

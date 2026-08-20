@@ -14,11 +14,13 @@ import 'package:health_data_hub/widgets/gauges/provided_score_gauge.dart';
 import 'package:health_data_hub/widgets/genotype/dna_visual.dart';
 import 'package:health_data_hub/widgets/genotype/gene_hero.dart';
 import 'package:health_data_hub/widgets/genotype/gene_info_card.dart';
+import 'package:health_data_hub/widgets/genotype/gene_picker_menu.dart';
 import 'package:health_data_hub/widgets/genotype/genotype_toggle.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_chip.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_info_card.dart';
 import 'package:health_data_hub/widgets/genotype/organwise_score_section.dart';
 import 'package:health_data_hub/widgets/genotype/section_dropdown_menu.dart';
+import 'package:health_data_hub/widgets/phenotype/phenotype_blood_view.dart';
 import 'package:health_data_hub/widgets/wellness/range_legend_grid.dart';
 
 class GenotypeScreen extends GetView<GenotypeController> {
@@ -42,6 +44,7 @@ class GenotypeScreen extends GetView<GenotypeController> {
                       (constraints.maxWidth * 0.82).clamp(260.0, 320.0);
 
                   return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(
                       AppConstants.pagePadding,
                       8,
@@ -51,7 +54,13 @@ class GenotypeScreen extends GetView<GenotypeController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const _GenotypeHeader(),
+                        Obx(
+                          () => _GenotypeHeader(
+                            title: controller.isGenotypeSelected.value
+                                ? 'Genotype'
+                                : 'Phenotype',
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Obx(
                           () => GenotypePhenotypeToggle(
@@ -61,41 +70,54 @@ class GenotypeScreen extends GetView<GenotypeController> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        SectionSelectorAnchor(controller: controller),
-                        const SizedBox(height: 12),
                         Obx(() {
-                          if (!controller.isHormoneSection) {
-                            return Column(
-                              children: [
-                                GeneHero(
-                                  height: dnaHeight,
-                                  genes: controller.genes,
-                                  selectedId: controller.selectedGeneId.value,
-                                  spo2: GenotypeController.spo2Percent,
-                                  onSelect: controller.selectGene,
-                                ),
-                                _GeneDetail(
-                                  gene: controller.selectedGene,
-                                  gaugeSize: gaugeSize,
-                                ),
-                              ],
+                          if (!controller.isGenotypeSelected.value) {
+                            return PhenotypeBloodView(
+                              controller: controller,
+                              heroHeight: dnaHeight,
+                              gaugeSize: gaugeSize,
                             );
                           }
 
                           return Column(
                             children: [
-                              _HormoneHero(
-                                height: dnaHeight,
-                                hormones: controller.hormones,
-                                selectedName:
-                                    controller.selectedHormoneName.value,
-                                onSelect: controller.selectHormone,
-                              ),
-                              _HormoneDetail(
-                                hormone: controller.selectedHormone,
-                                gaugeSize: gaugeSize,
-                                ranges: controller.scoreRanges,
-                              ),
+                              SectionSelectorAnchor(controller: controller),
+                              const SizedBox(height: 12),
+                              if (!controller.isHormoneSection)
+                                Column(
+                                  children: [
+                                    GeneHero(
+                                      height: dnaHeight,
+                                      genes: controller.genes,
+                                      selectedId:
+                                          controller.selectedGeneId.value,
+                                      spo2: GenotypeController.spo2Percent,
+                                      onSelect: controller.selectGene,
+                                    ),
+                                    _GeneDetail(
+                                      controller: controller,
+                                      gene: controller.selectedGene,
+                                      gaugeSize: gaugeSize,
+                                    ),
+                                  ],
+                                )
+                              else
+                                Column(
+                                  children: [
+                                    _HormoneHero(
+                                      height: dnaHeight,
+                                      hormones: controller.hormones,
+                                      selectedName: controller
+                                          .selectedHormoneName.value,
+                                      onSelect: controller.selectHormone,
+                                    ),
+                                    _HormoneDetail(
+                                      hormone: controller.selectedHormone,
+                                      gaugeSize: gaugeSize,
+                                      ranges: controller.scoreRanges,
+                                    ),
+                                  ],
+                                ),
                             ],
                           );
                         }),
@@ -113,7 +135,9 @@ class GenotypeScreen extends GetView<GenotypeController> {
 }
 
 class _GenotypeHeader extends StatelessWidget {
-  const _GenotypeHeader();
+  const _GenotypeHeader({required this.title});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +146,7 @@ class _GenotypeHeader extends StatelessWidget {
         const AppBackButton(),
         Expanded(
           child: Text(
-            'Genotype',
+            title,
             textAlign: TextAlign.center,
             style: AppTextStyles.screenTitle,
           ),
@@ -187,14 +211,16 @@ class _HormoneHero extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          CustomPaint(
-            size: Size.infinite,
-            painter: _HeroConnectorPainter(
-              alignments: [
-                for (final hormone in hormones) _alignmentFor(hormone.name),
-              ],
-              selectedIndex: hormones.indexWhere(
-                (hormone) => hormone.name == selectedName,
+          IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _HeroConnectorPainter(
+                alignments: [
+                  for (final hormone in hormones) _alignmentFor(hormone.name),
+                ],
+                selectedIndex: hormones.indexWhere(
+                  (hormone) => hormone.name == selectedName,
+                ),
               ),
             ),
           ),
@@ -331,10 +357,12 @@ class _HormoneDetail extends StatelessWidget {
 
 class _GeneDetail extends StatelessWidget {
   const _GeneDetail({
+    required this.controller,
     required this.gene,
     required this.gaugeSize,
   });
 
+  final GenotypeController controller;
   final GeneticTrait gene;
   final double gaugeSize;
 
@@ -344,12 +372,9 @@ class _GeneDetail extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 12),
-        Center(
-          child: Text(
-            '${gene.name}\nGenotype Score',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.displayMedium,
-          ),
+        GenePickerAnchor(
+          controller: controller,
+          gene: gene,
         ),
         if (gene.hasScore) ...[
           const SizedBox(height: 8),

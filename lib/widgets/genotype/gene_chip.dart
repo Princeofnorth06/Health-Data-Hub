@@ -8,12 +8,14 @@ class GeneChip extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.selected = false,
+    this.faint = false,
     this.onTap,
   });
 
   final String title;
   final String subtitle;
   final bool selected;
+  final bool faint;
   final VoidCallback? onTap;
 
   static const Color _selectedRim = Color(0xFF7CFF6B);
@@ -23,10 +25,12 @@ class GeneChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        constraints: const BoxConstraints(maxWidth: 168),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Opacity(
+        opacity: faint ? 0.55 : 1,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          constraints: const BoxConstraints(maxWidth: 168),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: _fill,
           borderRadius: BorderRadius.circular(10),
@@ -77,6 +81,7 @@ class GeneChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
