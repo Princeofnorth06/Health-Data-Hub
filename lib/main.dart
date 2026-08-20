@@ -7,6 +7,7 @@ import 'package:health_data_hub/app/theme/app_theme.dart';
 import 'package:health_data_hub/core/constants/app_constants.dart';
 import 'package:health_data_hub/screens/dopamine/dopamine_screen.dart';
 import 'package:health_data_hub/screens/genotype/genotype_screen.dart';
+import 'package:health_data_hub/screens/wellness/wellness_heart_score_screen.dart';
 import 'package:health_data_hub/screens/wellness/wellness_screen.dart';
 
 Future<void> main() async {
@@ -26,11 +27,15 @@ class HealthDataHubApp extends StatelessWidget {
       theme: AppTheme.dark(),
       initialBinding: InitialBinding(),
       initialRoute: AppRoutes.wellness,
-      routes: {
-        AppRoutes.wellness: (_) => const WellnessScreen(),
-        AppRoutes.genotype: (_) => const GenotypeScreen(),
-        AppRoutes.dopamine: (_) => const DopamineScreen(),
-      },
+      getPages: [
+        GetPage(name: AppRoutes.wellness, page: () => const WellnessScreen()),
+        GetPage(
+          name: AppRoutes.heartScore,
+          page: () => const WellnessHeartScoreScreen(),
+        ),
+        GetPage(name: AppRoutes.genotype, page: () => const GenotypeScreen()),
+        GetPage(name: AppRoutes.dopamine, page: () => const DopamineScreen()),
+      ],
     );
   }
 }

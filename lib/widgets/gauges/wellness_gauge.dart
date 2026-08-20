@@ -91,13 +91,14 @@ class WellnessGaugePainter extends CustomPainter {
   static const double _markerRadiusScale = 0.058;
 
   static const double _innerRingScale = 0.44;
-  static const double _innerGreenBorderScale = 0.45;
+  static const double _innerGreenBorderScale = 0.55;
+  static const double _outerGreenBorderScale = 0.65;
 
   static const double _innerBandInnerScale = 0.64;
   static const double _innerBandOuterScale = 0.72;
 
-  static const double _innerTickInnerScale = 0.54;
-  static const double _innerTickOuterScale = 0.63;
+  static const double _innerTickInnerScale = 0.44;
+  static const double _innerTickOuterScale = 0.53;
 
   double get _progress {
     return (score / 100).clamp(0.0, 1.0) * animationValue;
@@ -125,7 +126,8 @@ class WellnessGaugePainter extends CustomPainter {
     _drawScaleLabels(canvas, center, radius);
 
     _drawInnerTechnicalBand(canvas, center, gaugeRadius);
-    _drawInnerGreenBorder(canvas, center, gaugeRadius);
+    _drawGaugeBorders(canvas, center, gaugeRadius);
+
     _drawInnerTicks(canvas, center, gaugeRadius);
     _drawInnerBorderGlow(canvas, center, gaugeRadius);
 
@@ -333,69 +335,315 @@ class WellnessGaugePainter extends CustomPainter {
     final angle = _startAngle + _progressAngle;
     final markerCenter = _point(center, arcRadius, angle);
     final markerRadius = radius * _markerRadiusScale;
-    const markerGreen = Color(0xFF7CFF6B);
 
-    // Impeller-safe glow: concentric unblurred discs. MaskFilter is dropped.
+    // ==========================================
+    // OUTER GREEN ATMOSPHERIC GLOW
+    // ==========================================
+
+    final outerGlowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF6DFF58).withValues(alpha: 0.22),
+          const Color(0xFF45D83C).withValues(alpha: 0.10),
+          const Color(0xFF45D83C).withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.45, 1.0],
+      ).createShader(
+        Rect.fromCircle(
+          center: markerCenter,
+          radius: markerRadius * 2.0,
+        ),
+      );
+
     canvas.drawCircle(
       markerCenter,
-      markerRadius * 1.85,
-      Paint()..color = markerGreen.withValues(alpha: 0.14),
+      markerRadius * 2.0,
+      outerGlowPaint,
     );
+
+    // ==========================================
+    // MAIN 3D GREEN SPHERE
+    //
+    // Soft light from upper-left
+    // Deep green toward lower-right
+    // No white specular dot
+    // ==========================================
+
+    final markerPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.35, -0.40),
+        radius: 0.95,
+        colors: const [
+          Color(0xFF8AFF72), // soft upper-left light
+          Color(0xFF5BEA45), // bright green
+          Color(0xFF249B24), // rich green
+          Color(0xFF0B4E13), // deep green
+          Color(0xFF032507), // dark lower/right edge
+        ],
+        stops: [
+          0.0,
+          0.28,
+          0.55,
+          0.80,
+          1.0,
+        ],
+      ).createShader(
+        Rect.fromCircle(
+          center: markerCenter,
+          radius: markerRadius,
+        ),
+      );
+
     canvas.drawCircle(
       markerCenter,
-      markerRadius * 1.40,
-      Paint()..color = markerGreen.withValues(alpha: 0.28),
+      markerRadius,
+      markerPaint,
     );
 
-    final fillPaint = Paint()
-      ..shader =
-          RadialGradient(
-            center: const Alignment(-0.42, -0.42),
-            colors: [
-              const Color(0xFFF5FFE8),
-              markerGreen,
-              const Color(0xFF1A6B22),
-              const Color(0xFF0A3010),
-            ],
-            stops: const [0.0, 0.38, 0.78, 1.0],
-          ).createShader(
-            Rect.fromCircle(center: markerCenter, radius: markerRadius),
-          );
+    // ==========================================
+    // SUBTLE EDGE DEFINITION
+    // ==========================================
 
-    canvas.drawCircle(markerCenter, markerRadius, fillPaint);
+    final edgePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.004
+      ..color = const Color(0xFF8CFF78).withValues(alpha: 0.35);
 
-    final highlightPaint = Paint()..color = Colors.white.withValues(alpha: 0.88);
     canvas.drawCircle(
-      markerCenter + Offset(-markerRadius * 0.30, -markerRadius * 0.30),
-      markerRadius * 0.20,
-      highlightPaint,
+      markerCenter,
+      markerRadius,
+      edgePaint,
     );
   }
-
   void _drawInnerRing(Canvas canvas, Offset center, double radius) {
     final innerRadius = radius * _innerRingScale;
+    final discRect = Rect.fromCircle(center: center, radius: innerRadius);
 
+    // Deep recessed bowl: very dark core, controlled green toward the rim.
     final fillPaint = Paint()
       ..shader = RadialGradient(
         colors: const [
           Color(0xFF010301),
-          Color(0xFF05100A),
-          Color(0xFF1C4A24),
+          Color(0xFF020704),
+          Color(0xFF07160B),
+          Color(0xFF163B1C),
         ],
-        stops: const [0.0, 0.52, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: innerRadius));
+        stops: const [0.0, 0.42, 0.76, 1.0],
+      ).createShader(discRect);
+
     canvas.drawCircle(center, innerRadius, fillPaint);
+
+    // Very subtle lower-half atmospheric light inside the disc.
+    canvas.save();
+    canvas.clipPath(Path()..addOval(discRect));
+
+    final lowerGlowCenter = Offset(center.dx, center.dy + innerRadius * 0.82);
+
+    final lowerGlowPaint = Paint()
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0xFF7CFF6B).withValues(alpha: 0.13),
+              const Color(0xFF7CFF6B).withValues(alpha: 0.045),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.42, 1.0],
+          ).createShader(
+            Rect.fromCircle(
+              center: lowerGlowCenter,
+              radius: innerRadius * 0.85,
+            ),
+          );
+
+    canvas.drawCircle(lowerGlowCenter, innerRadius * 0.85, lowerGlowPaint);
+
+    canvas.restore();
   }
 
-  void _drawInnerGreenBorder(Canvas canvas, Offset center, double radius) {
-    final borderRadius = radius * _innerGreenBorderScale;
 
-    final borderPaint = Paint()
+
+
+
+
+
+  void _drawGaugeBorders(
+      Canvas canvas,
+      Offset center,
+      double radius,
+      ) {
+    final innerRadius = radius * _innerGreenBorderScale;
+    final outerRadius = radius * _outerGreenBorderScale;
+
+    // ==========================================
+    // BAND BETWEEN INNER & OUTER BORDER
+    // ==========================================
+
+    final bandPath = Path()
+      ..addOval(
+        Rect.fromCircle(
+          center: center,
+          radius: outerRadius,
+        ),
+      )
+      ..addOval(
+        Rect.fromCircle(
+          center: center,
+          radius: innerRadius,
+        ),
+      )
+      ..fillType = PathFillType.evenOdd;
+
+    final bandRect = Rect.fromCircle(
+      center: center,
+      radius: outerRadius,
+    );
+
+    // ==========================================
+    // BASE BAND COLOR
+    // Keep the existing vertical lighting:
+    // top = light green
+    // bottom = dark green / almost black
+    // ==========================================
+
+    final bandPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: const [
+          Color(0xFF8CFF78),
+          Color(0xFF62D957),
+          Color(0xFF2E7A35),
+          Color(0xFF163B1C),
+          Color(0xFF08140B),
+          Color(0xFF020504),
+        ],
+        stops: const [
+          0.0,
+          0.18,
+          0.38,
+          0.58,
+          0.78,
+          1.0,
+        ],
+      ).createShader(bandRect);
+
+    canvas.drawPath(bandPath, bandPaint);
+
+    // ==========================================
+    // TUBE DEPTH
+    //
+    // Cross-section:
+    // outer edge = darker
+    // middle      = slightly raised/light
+    // inner edge = darker
+    // ==========================================
+
+    // Outer wall shadow
+    final outerTubeShadow = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.022
+      ..color = Colors.black.withValues(alpha: 0.24)
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        radius * 0.008,
+      );
+
+    canvas.drawCircle(
+      center,
+      outerRadius - radius * 0.006,
+      outerTubeShadow,
+    );
+
+    // Inner wall shadow
+    final innerTubeShadow = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.022
+      ..color = Colors.black.withValues(alpha: 0.28)
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        radius * 0.008,
+      );
+
+    canvas.drawCircle(
+      center,
+      innerRadius + radius * 0.006,
+      innerTubeShadow,
+    );
+
+    // ==========================================
+    // RAISED CENTER OF THE TUBE
+    // ==========================================
+
+    final tubeRadius = (innerRadius + outerRadius) / 2;
+
+    final tubeHighlight = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.032
+      ..color = const Color(0xFF7CFF6B).withValues(alpha: 0.16)
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        radius * 0.010,
+      );
+
+    canvas.drawCircle(
+      center,
+      tubeRadius,
+      tubeHighlight,
+    );
+
+    // ==========================================
+    // SUBTLE SPECULAR HIGHLIGHT
+    //
+    // Only on upper half, so the ring doesn't
+    // look uniformly flat.
+    // ==========================================
+
+    final upperHighlight = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.010
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFFB1FF9B).withValues(alpha: 0.16);
+
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: center,
+        radius: tubeRadius,
+      ),
+      math.pi,
+      math.pi,
+      false,
+      upperHighlight,
+    );
+
+    // ==========================================
+    // INNER GREEN BORDER
+    // ==========================================
+
+    final innerBorderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = radius * 0.008
-      ..color = const Color(0xFF7CFF6B).withValues(alpha: 0.70);
+      ..color = const Color(0xFF7CFF6B).withValues(alpha: 0.72);
 
-    canvas.drawCircle(center, borderRadius, borderPaint);
+    canvas.drawCircle(
+      center,
+      innerRadius,
+      innerBorderPaint,
+    );
+
+    // ==========================================
+    // OUTER CYAN / TEAL BORDER
+    // ==========================================
+
+    final outerBorderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.007
+      ..color = const Color(0xFF18C7E8).withValues(alpha: 0.65);
+
+    canvas.drawCircle(
+      center,
+      outerRadius,
+      outerBorderPaint,
+    );
   }
 
   void _drawInnerTechnicalBand(Canvas canvas, Offset center, double radius) {
@@ -434,70 +682,64 @@ class WellnessGaugePainter extends CustomPainter {
 
   void _drawInnerBorderGlow(Canvas canvas, Offset center, double radius) {
     final discRadius = radius * _innerRingScale;
-    const glowGreen = Color(0xFF7CFF6B);
     final discRect = Rect.fromCircle(center: center, radius: discRadius);
 
-    // Subtle lime light confined to the disc rim, fading quickly toward the
-    // darker center so the interior stays dark (recessed-bowl depth).
-    final glowPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.transparent,
-          glowGreen.withValues(alpha: 0.04),
-          glowGreen.withValues(alpha: 0.14),
-        ],
-        stops: const [0.55, 0.82, 1.0],
-      ).createShader(discRect);
-    canvas.drawCircle(center, discRadius, glowPaint);
+    const glowGreen = Color(0xFF7CFF6B);
 
-    // Thin, controlled green rim around the disc edge.
-    final rimGlow = Paint()
+    // Very subtle full rim atmosphere.
+    final rimAtmosphere = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = radius * 0.010
-      ..color = glowGreen.withValues(alpha: 0.12);
-    canvas.drawCircle(center, discRadius, rimGlow);
+      ..strokeWidth = radius * 0.014
+      ..color = glowGreen.withValues(alpha: 0.075);
 
-    // Lower green crescent: luminous rim glow from ~4 o'clock to ~8 o'clock
-    // with a dip at 6 o'clock for the cyan highlight.
-    // Flutter drawArc: 0 rad = 3 o'clock, positive sweep = clockwise,
-    // so 6 o'clock = pi/2. Do NOT rely on MaskFilter alone — Impeller can
-    // clip/drop blurred strokes, which is why the previous crescent vanished.
-    // Stroke sits just inside the disc so it contrasts against the dark fill.
-    const rightStart = 30 * math.pi / 180; // 4 o'clock
-    const flankSweep = 48 * math.pi / 180; // to ~5:36
-    const leftStart = math.pi - rightStart - flankSweep; // ~6:24 to 8 o'clock
-    final inwardRadius = discRadius - radius * 0.018;
-    final crescentRect = Rect.fromCircle(center: center, radius: inwardRadius);
+    canvas.drawCircle(center, discRadius, rimAtmosphere);
 
-    void drawFlanks(Paint paint) {
-      canvas.drawArc(crescentRect, rightStart, flankSweep, false, paint);
-      canvas.drawArc(crescentRect, leftStart, flankSweep, false, paint);
-    }
+    /*
+   * Reference lower rim glow:
+   *
+   * It is NOT a U-shaped object.
+   * It is a soft bloom following the circular rim,
+   * brighter on both lower flanks and leaving a dip
+   * around exact 6 o'clock for the cyan highlight.
+   */
+
+    final glowRadius = discRadius - radius * 0.006;
+    final glowRect = Rect.fromCircle(center: center, radius: glowRadius);
+
+    // Right lower flank: ~4:30 -> ~5:40
+    const rightStart = math.pi / 4;
+    const rightSweep = math.pi / 4.8;
+
+    // Left lower flank: ~6:20 -> ~7:30
+    const leftStart = math.pi * 0.72;
+    const leftSweep = math.pi / 4.8;
 
     canvas.save();
     canvas.clipPath(Path()..addOval(discRect));
 
-    drawFlanks(
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.070
-        ..strokeCap = StrokeCap.round
-        ..color = glowGreen.withValues(alpha: 0.20),
-    );
-    drawFlanks(
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.038
-        ..strokeCap = StrokeCap.round
-        ..color = glowGreen.withValues(alpha: 0.42),
-    );
-    drawFlanks(
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius * 0.016
-        ..strokeCap = StrokeCap.round
-        ..color = glowGreen.withValues(alpha: 0.78),
-    );
+    // Soft atmospheric base.
+    final softFlankPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.030
+      ..strokeCap = StrokeCap.round
+      ..color = glowGreen.withValues(alpha: 0.14);
+
+    // Smaller luminous core.
+    final coreFlankPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.010
+      ..strokeCap = StrokeCap.round
+      ..color = glowGreen.withValues(alpha: 0.38);
+
+    // Right flank.
+    canvas.drawArc(glowRect, rightStart, rightSweep, false, softFlankPaint);
+
+    canvas.drawArc(glowRect, rightStart, rightSweep, false, coreFlankPaint);
+
+    // Left flank.
+    canvas.drawArc(glowRect, leftStart, leftSweep, false, softFlankPaint);
+
+    canvas.drawArc(glowRect, leftStart, leftSweep, false, coreFlankPaint);
 
     canvas.restore();
   }

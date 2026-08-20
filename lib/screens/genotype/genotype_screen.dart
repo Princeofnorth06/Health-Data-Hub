@@ -9,14 +9,13 @@ import 'package:health_data_hub/core/constants/app_constants.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 import 'package:health_data_hub/data/models/wellness_data.dart';
 import 'package:health_data_hub/widgets/common/app_back_button.dart';
-import 'package:health_data_hub/widgets/common/section_title.dart';
-import 'package:health_data_hub/widgets/gauges/hormone_score_gauge.dart';
+import 'package:health_data_hub/widgets/gauges/provided_score_gauge.dart';
 import 'package:health_data_hub/widgets/genotype/dna_visual.dart';
 import 'package:health_data_hub/widgets/genotype/genotype_toggle.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_chip.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_info_card.dart';
-import 'package:health_data_hub/widgets/genotype/section_selector.dart';
-import 'package:health_data_hub/widgets/wellness/range_item.dart';
+import 'package:health_data_hub/widgets/genotype/section_dropdown_menu.dart';
+import 'package:health_data_hub/widgets/wellness/range_legend_grid.dart';
 
 class GenotypeScreen extends GetView<GenotypeController> {
   const GenotypeScreen({super.key});
@@ -33,10 +32,10 @@ class GenotypeScreen extends GetView<GenotypeController> {
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final dnaHeight = (constraints.maxWidth * 0.82)
-                      .clamp(240.0, 340.0);
-                  final gaugeWidth = (constraints.maxWidth * 0.78)
-                      .clamp(220.0, 320.0);
+                  final dnaHeight =
+                      (constraints.maxWidth * 0.95).clamp(280.0, 380.0);
+                  final gaugeSize =
+                      (constraints.maxWidth * 0.82).clamp(260.0, 320.0);
 
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(
@@ -58,20 +57,21 @@ class GenotypeScreen extends GetView<GenotypeController> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        SectionSelector(title: controller.sectionTitle),
+                        SectionSelectorAnchor(controller: controller),
                         const SizedBox(height: 12),
                         Obx(
                           () => _HormoneHero(
                             height: dnaHeight,
                             hormones: controller.hormones,
-                            selectedName: controller.selectedHormoneName.value,
+                            selectedName:
+                                controller.selectedHormoneName.value,
                             onSelect: controller.selectHormone,
                           ),
                         ),
                         Obx(
                           () => _HormoneDetail(
                             hormone: controller.selectedHormone,
-                            gaugeWidth: gaugeWidth,
+                            gaugeSize: gaugeSize,
                             ranges: controller.scoreRanges,
                           ),
                         ),
@@ -163,12 +163,24 @@ class _HormoneHero extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          CustomPaint(
+            size: Size.infinite,
+            painter: _HeroConnectorPainter(
+              alignments: [
+                for (final hormone in hormones) _alignmentFor(hormone.name),
+              ],
+              selectedIndex: hormones.indexWhere(
+                (hormone) => hormone.name == selectedName,
+              ),
+            ),
+          ),
           DnaVisual(height: height),
           for (final hormone in hormones)
             Align(
               alignment: _alignmentFor(hormone.name),
               child: HormoneChip(
                 label: hormone.name,
+                subtitle: hormone.name == 'OXTR' ? hormone.subtitle : null,
                 selected: hormone.name == selectedName,
                 onTap: () => onSelect(hormone.name),
               ),
@@ -179,15 +191,52 @@ class _HormoneHero extends StatelessWidget {
   }
 }
 
+class _HeroConnectorPainter extends CustomPainter {
+  _HeroConnectorPainter({
+    required this.alignments,
+    required this.selectedIndex,
+  });
+
+  final List<Alignment> alignments;
+  final int selectedIndex;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final origin = Offset(size.width / 2, size.height * 0.46);
+
+    for (var i = 0; i < alignments.length; i++) {
+      final alignment = alignments[i];
+      final target = Offset(
+        (alignment.x + 1) / 2 * size.width,
+        (alignment.y + 1) / 2 * size.height,
+      );
+      final selected = i == selectedIndex;
+      final paint = Paint()
+        ..color = selected
+            ? const Color(0xFF48AF3C).withValues(alpha: 0.78)
+            : AppColors.accentCyan.withValues(alpha: 0.22)
+        ..strokeWidth = selected ? 1.5 : 0.9
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawLine(origin, target, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeroConnectorPainter oldDelegate) {
+    return oldDelegate.selectedIndex != selectedIndex;
+  }
+}
+
 class _HormoneDetail extends StatelessWidget {
   const _HormoneDetail({
     required this.hormone,
-    required this.gaugeWidth,
+    required this.gaugeSize,
     required this.ranges,
   });
 
   final HormoneData hormone;
-  final double gaugeWidth;
+  final double gaugeSize;
   final List<WellnessRange> ranges;
 
   @override
@@ -206,25 +255,48 @@ class _HormoneDetail extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: SizedBox(
-              width: gaugeWidth,
-              child: HormoneScoreGauge(
-                key: ValueKey(hormone.name),
-                score: hormone.level,
+              width: gaugeSize,
+              height: gaugeSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  IgnorePointer(
+                    child: Container(
+                      width: gaugeSize * 0.72,
+                      height: gaugeSize * 0.72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF48AF3C).withValues(
+                              alpha: 0.22,
+                            ),
+                            blurRadius: 48,
+                            spreadRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  ProvidedScoreGauge(
+                    key: ValueKey(hormone.name),
+                    asset: AppAssets.gaugeGreen,
+                    score: hormone.level,
+                    size: gaugeSize,
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: AppConstants.sectionGap),
-          const SectionTitle(title: 'RANGES'),
-          const SizedBox(height: AppConstants.itemGap),
-          for (final range in ranges) ...[
-            RangeItem(range: range),
-            const SizedBox(height: AppConstants.itemGap),
-          ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
+          RangeLegendGrid(ranges: ranges),
+          const SizedBox(height: 24),
           HormoneInfoCard(hormone: hormone),
         ],
         if (hormone.hasAbout) ...[
-          SizedBox(height: hormone.hasRegulationScore ? AppConstants.sectionGap : 16),
+          SizedBox(
+            height: hormone.hasRegulationScore ? AppConstants.sectionGap : 16,
+          ),
           HormoneAboutSection(hormone: hormone),
         ],
         const SizedBox(height: 24),
@@ -241,17 +313,46 @@ class _TopGlow extends StatelessWidget {
     return IgnorePointer(
       child: Align(
         alignment: Alignment.topCenter,
-        child: Container(
-          height: 320,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(0, -0.2),
-              radius: 0.85,
-              colors: [
-                AppColors.primary.withValues(alpha: 0.18),
-                Colors.transparent,
-              ],
-            ),
+        child: SizedBox(
+          height: 640,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.08),
+                    radius: 1.55,
+                    colors: [
+                      AppColors.accentCyan.withValues(alpha: 0.14),
+                      AppColors.primary.withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.42, 1.0],
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  width: 240,
+                  height: 640,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF48AF3C).withValues(alpha: 0.10),
+                        const Color(0xFF48AF3C).withValues(alpha: 0.05),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.52, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

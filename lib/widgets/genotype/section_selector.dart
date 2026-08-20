@@ -6,10 +6,12 @@ class SectionSelector extends StatelessWidget {
   const SectionSelector({
     super.key,
     required this.title,
+    this.expanded = false,
     this.onTap,
   });
 
   final String title;
+  final bool expanded;
   final VoidCallback? onTap;
 
   @override
@@ -17,33 +19,40 @@ class SectionSelector extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.displayMedium,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.textPrimary.withValues(alpha: 0.55),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.displayMedium,
               ),
             ),
-            child: const Icon(
-              Icons.keyboard_arrow_down,
-              color: AppColors.textPrimary,
-              size: 16,
+            const SizedBox(width: 8),
+            AnimatedRotation(
+              turns: expanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.textPrimary.withValues(alpha: 0.55),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textPrimary,
+                  size: 16,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

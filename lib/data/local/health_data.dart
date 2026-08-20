@@ -1,4 +1,6 @@
 import 'package:health_data_hub/data/models/genetic_trait.dart';
+import 'package:health_data_hub/data/models/genotype_section.dart';
+import 'package:health_data_hub/data/models/heart_score_data.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 import 'package:health_data_hub/data/models/wellness_data.dart';
 
@@ -137,5 +139,75 @@ class HealthData {
     ),
   ];
 
+  static const List<GenotypeSection> genotypeSections = GenotypeSection.catalog;
+
   static const List<GeneticTrait> geneticTraits = [];
+
+  static const HeartScoreData heartScore = HeartScoreData(
+    score: 76.9,
+    status: 'optimal',
+    badgeLabel: 'Moderate',
+    badgeValue: 36.7,
+    ranges: [
+      HeartRange(
+        value: '< 4.46 mcg/dL',
+        label: 'VERY LOW',
+        tone: 'veryLow',
+      ),
+      HeartRange(
+        value: '< 6.46 mcg/dL',
+        label: 'OPTIMAL',
+        tone: 'optimal',
+      ),
+      HeartRange(
+        value: '< 8.46 mcg/dL',
+        label: 'LOW',
+        tone: 'low',
+      ),
+      HeartRange(
+        value: '88.46 -9.2 mcg/dL',
+        label: 'HIGH',
+        tone: 'high',
+      ),
+      HeartRange(
+        value: '4.46 mcg/dL',
+        label: 'MODERATE',
+        tone: 'moderate',
+      ),
+      HeartRange(
+        value: '<10.46 -22.0 mg/dL',
+        label: 'VERY HIGH',
+        tone: 'veryHigh',
+      ),
+    ],
+    parametersIntro:
+        'Parameters that are generally impacted by LDL Cholesterol:',
+    parameters: [
+      HeartParameter(
+        title: 'Heart Rate Variability (HRV)',
+        body:
+            'SLC6A4 gene variations can influence stress response, indirectly '
+            'affecting HRV and overall heart adaptability.',
+      ),
+      HeartParameter(
+        title: 'Resting Heart Rate (RHR)',
+        body:
+            'Altered serotonin transport (regulated by SLC6A4) can impact '
+            'resting heart rate due to its role in autonomic nervous system '
+            'balance.',
+      ),
+      HeartParameter(
+        title: 'Stress Tolerance and Recovery',
+        body:
+            'The gene is closely tied to serotonin transport, affecting how '
+            'quickly the heart and body recover from stress.',
+      ),
+    ],
+    about:
+        'The SLC6A4 Heart Score is an indicator of how variations in '
+        'the SLC6A4 gene — which encodes the serotonin transporter '
+        '— may influence cardiovascular health, particularly in '
+        'relation to stress response, heart rate regulation, and '
+        'emotional well-being.',
+  );
 }

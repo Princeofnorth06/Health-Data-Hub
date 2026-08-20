@@ -1,15 +1,18 @@
 import 'package:get/get.dart';
 import 'package:health_data_hub/data/local/health_data.dart';
+import 'package:health_data_hub/data/models/genotype_section.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 import 'package:health_data_hub/data/models/wellness_data.dart';
 
 class GenotypeController extends GetxController {
   final hormones = HealthData.hormoneRegulation;
   final ranges = HealthData.wellness.ranges;
-  final sectionTitle = 'Hormone Regulation Score';
+  final sections = GenotypeSection.catalog;
 
   final isGenotypeSelected = true.obs;
   final selectedHormoneName = 'Dopamine'.obs;
+  final isSectionMenuOpen = false.obs;
+  final selectedSectionId = GenotypeSection.hormoneRegulation.obs;
 
   HormoneData get selectedHormone {
     return hormones.firstWhere(
@@ -18,12 +21,38 @@ class GenotypeController extends GetxController {
     );
   }
 
+  GenotypeSection get selectedSection {
+    return sections.firstWhere(
+      (section) => section.id == selectedSectionId.value,
+      orElse: () => sections.first,
+    );
+  }
+
+  String get sectionTitle => selectedSection.title;
+
   void selectHormone(String name) {
     selectedHormoneName.value = name;
   }
 
   void selectGenotypeTab(bool selected) {
     isGenotypeSelected.value = selected;
+  }
+
+  void openSectionMenu() {
+    isSectionMenuOpen.value = true;
+  }
+
+  void toggleSectionMenu() {
+    isSectionMenuOpen.toggle();
+  }
+
+  void closeSectionMenu() {
+    isSectionMenuOpen.value = false;
+  }
+
+  void selectSection(String id) {
+    selectedSectionId.value = id;
+    isSectionMenuOpen.value = false;
   }
 
   List<WellnessRange> get scoreRanges => ranges;

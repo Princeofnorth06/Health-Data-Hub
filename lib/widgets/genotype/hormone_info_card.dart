@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:health_data_hub/app/theme/app_colors.dart';
 import 'package:health_data_hub/app/theme/app_text_styles.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 
@@ -8,44 +7,70 @@ class HormoneInfoCard extends StatelessWidget {
 
   final HormoneData hormone;
 
+  static const Color _glow = Color(0xFF12708B);
+  static const Color _rim = Color(0xFF1B8CA8);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accentCyan.withValues(alpha: 0.85)),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.accentCyan.withValues(alpha: 0.22),
+            color: _glow.withValues(alpha: 0.7),
             blurRadius: 18,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: _glow.withValues(alpha: 0.4),
+            blurRadius: 32,
+            spreadRadius: 4,
+          ),
+          BoxShadow(
+            color: const Color(0xFF00C8FF).withValues(alpha: 0.18),
+            blurRadius: 24,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(hormone.fullTitle, style: AppTextStyles.heading),
-          const SizedBox(height: 10),
-          Text.rich(
-            TextSpan(
-              text: 'Genotype Score: ',
-              style: AppTextStyles.body,
-              children: [
-                TextSpan(
-                  text: '${hormone.level.round()}%',
-                  style: AppTextStyles.scoreValue.copyWith(
-                    color: AppColors.scoreHighlight,
-                  ),
-                ),
-              ],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF000000),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: _rim, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: _glow.withValues(alpha: 0.55),
+              blurRadius: 14,
+              spreadRadius: 0.5,
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(hormone.interpretation!, style: AppTextStyles.body),
-        ],
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(hormone.fullTitle, style: AppTextStyles.heading),
+            const SizedBox(height: 10),
+            Text.rich(
+              TextSpan(
+                text: 'Genotype Score: ',
+                style: AppTextStyles.body,
+                children: [
+                  TextSpan(
+                    text: '${hormone.level.round()}%',
+                    style: AppTextStyles.scoreValue.copyWith(
+                      color: const Color(0xFFFFC800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(hormone.interpretation ?? '', style: AppTextStyles.body),
+          ],
+        ),
       ),
     );
   }
@@ -71,14 +96,20 @@ class HormoneAboutSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Container(
-          height: 1,
-          decoration: BoxDecoration(
+          height: 1.5,
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.accentCyan.withValues(alpha: 0.8),
-                Colors.transparent,
+                Color(0xFF00C5FB),
+                Color(0x0000C5FB),
               ],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x8000C5FB),
+                blurRadius: 6,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 12),

@@ -23,15 +23,27 @@ class RecommendationCard extends StatelessWidget {
       children: [
         Text(title, style: AppTextStyles.heading),
         if (!emphasized) ...[
-          const SizedBox(height: 8),
-          Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.textSecondary.withValues(alpha: 0.55),
-                  Colors.transparent,
-                ],
+          const SizedBox(height: 14),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: 0.62,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF00C5FB),
+                      Color(0x0000C5FB),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x8000C5FB),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: SizedBox(width: double.infinity, height: 1.5),
               ),
             ),
           ),
@@ -46,7 +58,9 @@ class RecommendationCard extends StatelessWidget {
                 TextSpan(
                   text: '${genotypeScore!.toStringAsFixed(2)}%',
                   style: AppTextStyles.scoreValue.copyWith(
-                    color: AppColors.scoreHighlight,
+                    color: emphasized
+                        ? const Color(0xFFFFC800)
+                        : AppColors.scoreHighlight,
                   ),
                 ),
               ],
@@ -62,21 +76,47 @@ class RecommendationCard extends StatelessWidget {
       return content;
     }
 
+    const glow = Color(0xFF12708B);
+    const rim = Color(0xFF1B8CA8);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accentCyan.withValues(alpha: 0.85)),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.accentCyan.withValues(alpha: 0.22),
+            color: glow.withValues(alpha: 0.7),
             blurRadius: 18,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: glow.withValues(alpha: 0.4),
+            blurRadius: 32,
+            spreadRadius: 4,
+          ),
+          BoxShadow(
+            color: const Color(0xFF00C8FF).withValues(alpha: 0.18),
+            blurRadius: 24,
           ),
         ],
       ),
-      child: content,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF000000),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: rim, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: glow.withValues(alpha: 0.55),
+              blurRadius: 14,
+              spreadRadius: 0.5,
+            ),
+          ],
+        ),
+        child: content,
+      ),
     );
   }
 }

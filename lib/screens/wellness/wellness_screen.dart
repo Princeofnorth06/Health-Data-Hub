@@ -8,10 +8,9 @@ import 'package:health_data_hub/controllers/wellness_controller.dart';
 import 'package:health_data_hub/core/constants/app_assets.dart';
 import 'package:health_data_hub/core/constants/app_constants.dart';
 import 'package:health_data_hub/widgets/common/app_back_button.dart';
-import 'package:health_data_hub/widgets/common/section_title.dart';
 import 'package:health_data_hub/widgets/gauges/wellness_gauge.dart';
 import 'package:health_data_hub/widgets/wellness/genetic_strength_card.dart';
-import 'package:health_data_hub/widgets/wellness/range_item.dart';
+import 'package:health_data_hub/widgets/wellness/range_legend_grid.dart';
 import 'package:health_data_hub/widgets/wellness/recommendation_card.dart';
 
 class WellnessScreen extends GetView<WellnessController> {
@@ -48,24 +47,18 @@ class WellnessScreen extends GetView<WellnessController> {
                       height: 300,
                       child: WellnessGauge(score: wellness.score),
                     ),
-                    // WellnessGauge(score: wellness.score),
                     const SizedBox(height: AppConstants.sectionGap),
-                    const SectionTitle(title: 'RANGES'),
-                    const SizedBox(height: AppConstants.itemGap),
-                    for (final range in wellness.ranges) ...[
-                      RangeItem(range: range),
-                      const SizedBox(height: AppConstants.itemGap),
-                    ],
-                    const SizedBox(height: 8),
+                    RangeLegendGrid(ranges: wellness.ranges),
+                    const SizedBox(height: 24),
                     GeneticStrengthCard(items: controller.strengths),
-                    const SizedBox(height: AppConstants.sectionGap),
+                    const SizedBox(height: 18),
                     RecommendationCard(
-                      title: 'Personalized Wellness Suggestions',
+                      title: 'Personalized Wellness\nSuggestions',
                       genotypeScore: wellness.genotypeScore,
                       items: wellness.suggestions,
                       emphasized: true,
                     ),
-                    const SizedBox(height: AppConstants.sectionGap),
+                    const SizedBox(height: 24),
                     RecommendationCard(
                       title: 'Recommendations',
                       items: wellness.recommendations,
@@ -106,12 +99,58 @@ class _WellnessHeader extends StatelessWidget {
             ),
           ),
           padding: const EdgeInsets.all(6),
-          child: Transform.rotate(
-            angle: 0.7, // radians
-            child: Image.asset(AppAssets.dnaHelix, fit: BoxFit.contain),
+          child: GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.heartScore),
+            child: Transform.rotate(
+              angle: 0.7, // radians
+              child: Image.asset(AppAssets.dnaHelix, fit: BoxFit.contain),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Provided decorative gauge (`assets/images/decorative/gauge_green.png`).
+/// Center 76% is covered so the live wellness score can be shown.
+class _ProvidedWellnessGauge extends StatelessWidget {
+  const _ProvidedWellnessGauge({required this.score});
+
+  final double score;
+
+  static const double _size = 300;
+  static const Color _centerFill = Color(0xFF0D0E17);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _size,
+      height: _size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            AppAssets.gaugeGreen,
+            width: _size,
+            height: _size,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          ),
+          Container(
+            width: 88,
+            height: 88,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: _centerFill,
+            ),
+          ),
+          Text(
+            '${score.round()}%',
+            style: AppTextStyles.gaugeScore,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -124,22 +163,25 @@ class _ScoreSectionTitle extends StatelessWidget {
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.genotype),
       behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Text(
-              'Overall Wellness Score',
-              style: AppTextStyles.displayMedium,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                'Overall Wellness Score',
+                style: AppTextStyles.displayMedium,
+              ),
             ),
-          ),
-          const SizedBox(width: 6),
-          Icon(
-            Icons.keyboard_arrow_down,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
-        ],
+            const SizedBox(width: 6),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -153,17 +195,46 @@ class _TopGlow extends StatelessWidget {
     return IgnorePointer(
       child: Align(
         alignment: Alignment.topCenter,
-        child: Container(
-          height: 320,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(0, -0.2),
-              radius: 0.85,
-              colors: [
-                AppColors.primary.withValues(alpha: 0.22),
-                Colors.transparent,
-              ],
-            ),
+        child: SizedBox(
+          height: 700,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -0.05),
+                    radius: 1.75,
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.18),
+                      AppColors.primary.withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.42, 1.0],
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  width: 260,
+                  height: 700,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFF48AF3C).withValues(alpha: 0.10),
+                        const Color(0xFF48AF3C).withValues(alpha: 0.07),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.58, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
