@@ -68,17 +68,13 @@ class GenotypeScreen extends GetView<GenotypeController> {
                             onSelect: controller.selectHormone,
                           ),
                         ),
-                        Obx(() {
-                          final hormone = controller.selectedHormone;
-                          if (!hormone.hasDetail) {
-                            return const SizedBox(height: 24);
-                          }
-                          return _HormoneDetail(
-                            hormone: hormone,
+                        Obx(
+                          () => _HormoneDetail(
+                            hormone: controller.selectedHormone,
                             gaugeWidth: gaugeWidth,
                             ranges: controller.scoreRanges,
-                          );
-                        }),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -206,27 +202,32 @@ class _HormoneDetail extends StatelessWidget {
             style: AppTextStyles.displayMedium,
           ),
         ),
-        const SizedBox(height: 8),
-        Center(
-          child: SizedBox(
-            width: gaugeWidth,
-            child: HormoneScoreGauge(
-              key: ValueKey(hormone.name),
-              score: hormone.level,
+        if (hormone.hasRegulationScore) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: SizedBox(
+              width: gaugeWidth,
+              child: HormoneScoreGauge(
+                key: ValueKey(hormone.name),
+                score: hormone.level,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: AppConstants.sectionGap),
-        const SectionTitle(title: 'RANGES'),
-        const SizedBox(height: AppConstants.itemGap),
-        for (final range in ranges) ...[
-          RangeItem(range: range),
+          const SizedBox(height: AppConstants.sectionGap),
+          const SectionTitle(title: 'RANGES'),
           const SizedBox(height: AppConstants.itemGap),
+          for (final range in ranges) ...[
+            RangeItem(range: range),
+            const SizedBox(height: AppConstants.itemGap),
+          ],
+          const SizedBox(height: 8),
+          HormoneInfoCard(hormone: hormone),
         ],
-        const SizedBox(height: 8),
-        HormoneInfoCard(hormone: hormone),
-        const SizedBox(height: AppConstants.sectionGap),
-        HormoneAboutSection(hormone: hormone),
+        if (hormone.hasAbout) ...[
+          SizedBox(height: hormone.hasRegulationScore ? AppConstants.sectionGap : 16),
+          HormoneAboutSection(hormone: hormone),
+        ],
+        const SizedBox(height: 24),
       ],
     );
   }

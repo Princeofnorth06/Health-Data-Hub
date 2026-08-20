@@ -118,10 +118,23 @@ class HealthData {
         ),
       ],
     ),
-    HormoneData(name: 'Serotonin', level: 0),
-    HormoneData(name: 'Cortisol', level: 0),
-    HormoneData(name: 'Melatonin', level: 0),
-    HormoneData(name: 'OXTR', level: 0),
+    HormoneData(
+      name: 'Serotonin',
+      level: 0,
+    ),
+    HormoneData(
+      name: 'Cortisol',
+      level: 0,
+    ),
+    HormoneData(
+      name: 'Melatonin',
+      level: 0,
+    ),
+    HormoneData(
+      name: 'OXTR',
+      level: 0,
+      subtitle: 'Oxytocin Receptor Gene',
+    ),
   ];
 
   static const List<GeneticTrait> geneticTraits = [];

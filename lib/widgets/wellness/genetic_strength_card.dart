@@ -84,7 +84,10 @@ class _StrengthRow extends StatelessWidget {
                   Text(item.name, style: AppTextStyles.subtitle),
                   if (item.description != null) ...[
                     const SizedBox(height: 2),
-                    Text(item.description!, style: AppTextStyles.strengthDetail),
+                    Text(
+                      item.description!,
+                      style: AppTextStyles.strengthDetail,
+                    ),
                   ],
                 ],
               ),

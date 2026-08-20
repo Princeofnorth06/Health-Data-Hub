@@ -58,6 +58,10 @@ class HormoneAboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!hormone.hasAbout) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

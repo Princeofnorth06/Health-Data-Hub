@@ -21,6 +21,11 @@ class HormoneData {
 
   bool get hasDetail => interpretation != null && interpretation!.isNotEmpty;
 
+  bool get hasAbout =>
+      (about != null && about!.isNotEmpty) || aboutVariations.isNotEmpty;
+
+  bool get hasRegulationScore => hasDetail && level > 0;
+
   String get fullTitle {
     if (subtitle == null || subtitle!.isEmpty) {
       return name;

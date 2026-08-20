@@ -32,10 +32,7 @@ class RangeItem extends StatelessWidget {
             color: _color,
             borderRadius: BorderRadius.circular(4),
             boxShadow: [
-              BoxShadow(
-                color: _color.withValues(alpha: 0.55),
-                blurRadius: 8,
-              ),
+              BoxShadow(color: _color.withValues(alpha: 0.55), blurRadius: 8),
             ],
           ),
         ),

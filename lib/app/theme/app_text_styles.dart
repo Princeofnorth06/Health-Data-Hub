@@ -104,18 +104,18 @@ class AppTextStyles {
 
   static final TextStyle gaugeScore = GoogleFonts.inter(
     fontSize: 42,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.0,
-    letterSpacing: -0.4,
+    letterSpacing: -0.5,
   );
 
-  static final TextStyle gaugeLabel = GoogleFonts.inter(
+  static final TextStyle gaugeLabel = GoogleFonts.orbitron(
     fontSize: 10,
-    fontWeight: FontWeight.w300,
+    fontWeight: FontWeight.w400,
     color: const Color(0xFFB8B8B8),
     height: 1.0,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   );
 
   static final TextStyle toggleLabel = GoogleFonts.inter(

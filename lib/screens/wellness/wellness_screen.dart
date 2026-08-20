@@ -43,7 +43,12 @@ class WellnessScreen extends GetView<WellnessController> {
                     const SizedBox(height: AppConstants.sectionGap),
                     const _ScoreSectionTitle(),
                     const SizedBox(height: 8),
-                    WellnessGauge(score: wellness.score),
+                    SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: WellnessGauge(score: wellness.score),
+                    ),
+                    // WellnessGauge(score: wellness.score),
                     const SizedBox(height: AppConstants.sectionGap),
                     const SectionTitle(title: 'RANGES'),
                     const SizedBox(height: AppConstants.itemGap),
@@ -103,10 +108,7 @@ class _WellnessHeader extends StatelessWidget {
           padding: const EdgeInsets.all(6),
           child: Transform.rotate(
             angle: 0.7, // radians
-            child: Image.asset(
-              AppAssets.dnaHelix,
-              fit: BoxFit.contain,
-            ),
+            child: Image.asset(AppAssets.dnaHelix, fit: BoxFit.contain),
           ),
         ),
       ],
