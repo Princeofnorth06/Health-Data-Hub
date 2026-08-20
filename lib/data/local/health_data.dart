@@ -141,7 +141,7 @@ class HealthData {
 
   static const List<GenotypeSection> genotypeSections = GenotypeSection.catalog;
 
-  static const List<GeneticTrait> geneticTraits = [];
+  static const List<GeneticTrait> geneticTraits = GeneticTrait.catalog;
 
   static const HeartScoreData heartScore = HeartScoreData(
     score: 76.9,

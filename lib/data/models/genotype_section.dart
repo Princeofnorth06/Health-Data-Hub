@@ -4,6 +4,7 @@ class GenotypeSection {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.headline,
   });
 
   static const String hormoneRegulation = 'hormoneRegulation';
@@ -21,6 +22,7 @@ class GenotypeSection {
       title: 'Overall Wellness Profile',
       subtitle: 'Your genetic snapshot of overall health.',
       icon: GenotypeSectionIcon.heartPulse,
+      headline: 'Gene-to-Health Overview',
     ),
   ];
 
@@ -28,6 +30,9 @@ class GenotypeSection {
   final String title;
   final String subtitle;
   final GenotypeSectionIcon icon;
+  final String? headline;
+
+  String get selectorTitle => headline ?? title;
 }
 
 enum GenotypeSectionIcon { molecule, heartPulse }

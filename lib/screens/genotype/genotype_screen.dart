@@ -6,14 +6,18 @@ import 'package:health_data_hub/app/theme/app_text_styles.dart';
 import 'package:health_data_hub/controllers/genotype_controller.dart';
 import 'package:health_data_hub/core/constants/app_assets.dart';
 import 'package:health_data_hub/core/constants/app_constants.dart';
+import 'package:health_data_hub/data/models/genetic_trait.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 import 'package:health_data_hub/data/models/wellness_data.dart';
 import 'package:health_data_hub/widgets/common/app_back_button.dart';
 import 'package:health_data_hub/widgets/gauges/provided_score_gauge.dart';
 import 'package:health_data_hub/widgets/genotype/dna_visual.dart';
+import 'package:health_data_hub/widgets/genotype/gene_hero.dart';
+import 'package:health_data_hub/widgets/genotype/gene_info_card.dart';
 import 'package:health_data_hub/widgets/genotype/genotype_toggle.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_chip.dart';
 import 'package:health_data_hub/widgets/genotype/hormone_info_card.dart';
+import 'package:health_data_hub/widgets/genotype/organwise_score_section.dart';
 import 'package:health_data_hub/widgets/genotype/section_dropdown_menu.dart';
 import 'package:health_data_hub/widgets/wellness/range_legend_grid.dart';
 
@@ -59,22 +63,42 @@ class GenotypeScreen extends GetView<GenotypeController> {
                         const SizedBox(height: 20),
                         SectionSelectorAnchor(controller: controller),
                         const SizedBox(height: 12),
-                        Obx(
-                          () => _HormoneHero(
-                            height: dnaHeight,
-                            hormones: controller.hormones,
-                            selectedName:
-                                controller.selectedHormoneName.value,
-                            onSelect: controller.selectHormone,
-                          ),
-                        ),
-                        Obx(
-                          () => _HormoneDetail(
-                            hormone: controller.selectedHormone,
-                            gaugeSize: gaugeSize,
-                            ranges: controller.scoreRanges,
-                          ),
-                        ),
+                        Obx(() {
+                          if (!controller.isHormoneSection) {
+                            return Column(
+                              children: [
+                                GeneHero(
+                                  height: dnaHeight,
+                                  genes: controller.genes,
+                                  selectedId: controller.selectedGeneId.value,
+                                  spo2: GenotypeController.spo2Percent,
+                                  onSelect: controller.selectGene,
+                                ),
+                                _GeneDetail(
+                                  gene: controller.selectedGene,
+                                  gaugeSize: gaugeSize,
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              _HormoneHero(
+                                height: dnaHeight,
+                                hormones: controller.hormones,
+                                selectedName:
+                                    controller.selectedHormoneName.value,
+                                onSelect: controller.selectHormone,
+                              ),
+                              _HormoneDetail(
+                                hormone: controller.selectedHormone,
+                                gaugeSize: gaugeSize,
+                                ranges: controller.scoreRanges,
+                              ),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   );
@@ -298,6 +322,82 @@ class _HormoneDetail extends StatelessWidget {
             height: hormone.hasRegulationScore ? AppConstants.sectionGap : 16,
           ),
           HormoneAboutSection(hormone: hormone),
+        ],
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+class _GeneDetail extends StatelessWidget {
+  const _GeneDetail({
+    required this.gene,
+    required this.gaugeSize,
+  });
+
+  final GeneticTrait gene;
+  final double gaugeSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            '${gene.name}\nGenotype Score',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.displayMedium,
+          ),
+        ),
+        if (gene.hasScore) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: SizedBox(
+              width: gaugeSize,
+              height: gaugeSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  IgnorePointer(
+                    child: Container(
+                      width: gaugeSize * 0.72,
+                      height: gaugeSize * 0.72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFEDC11).withValues(
+                              alpha: 0.22,
+                            ),
+                            blurRadius: 48,
+                            spreadRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  ProvidedScoreGauge(
+                    key: ValueKey(gene.id),
+                    asset: AppAssets.gaugeYellow,
+                    score: gene.score,
+                    size: gaugeSize,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          GeneInfoCard(gene: gene),
+        ],
+        if (gene.about != null && gene.about!.isNotEmpty) ...[
+          SizedBox(height: gene.hasScore ? AppConstants.sectionGap : 16),
+          GeneAboutSection(gene: gene),
+        ],
+        if (gene.hasOrganwise) ...[
+          const SizedBox(height: 28),
+          OrganwiseScoreSection(gene: gene),
         ],
         const SizedBox(height: 24),
       ],

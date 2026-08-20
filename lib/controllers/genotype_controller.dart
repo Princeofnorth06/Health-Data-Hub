@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:health_data_hub/data/local/health_data.dart';
+import 'package:health_data_hub/data/models/genetic_trait.dart';
 import 'package:health_data_hub/data/models/genotype_section.dart';
 import 'package:health_data_hub/data/models/hormone_data.dart';
 import 'package:health_data_hub/data/models/wellness_data.dart';
@@ -8,16 +9,27 @@ class GenotypeController extends GetxController {
   final hormones = HealthData.hormoneRegulation;
   final ranges = HealthData.wellness.ranges;
   final sections = GenotypeSection.catalog;
+  final genes = GeneticTrait.catalog;
+
+  static const double spo2Percent = 98;
 
   final isGenotypeSelected = true.obs;
   final selectedHormoneName = 'Dopamine'.obs;
   final isSectionMenuOpen = false.obs;
   final selectedSectionId = GenotypeSection.hormoneRegulation.obs;
+  final selectedGeneId = 'SLC6A4'.obs;
 
   HormoneData get selectedHormone {
     return hormones.firstWhere(
       (hormone) => hormone.name == selectedHormoneName.value,
       orElse: () => hormones.first,
+    );
+  }
+
+  GeneticTrait get selectedGene {
+    return genes.firstWhere(
+      (gene) => gene.id == selectedGeneId.value,
+      orElse: () => genes.first,
     );
   }
 
@@ -28,10 +40,18 @@ class GenotypeController extends GetxController {
     );
   }
 
-  String get sectionTitle => selectedSection.title;
+  bool get isHormoneSection {
+    return selectedSectionId.value == GenotypeSection.hormoneRegulation;
+  }
+
+  String get sectionTitle => selectedSection.selectorTitle;
 
   void selectHormone(String name) {
     selectedHormoneName.value = name;
+  }
+
+  void selectGene(String id) {
+    selectedGeneId.value = id;
   }
 
   void selectGenotypeTab(bool selected) {
